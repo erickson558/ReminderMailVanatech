@@ -1,0 +1,35 @@
+# Build artifacts de PyInstaller
+build/
+dist/
+*.spec.bak
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs generados en tiempo de ejecución
+*.log
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+.env/
+
+# Configuración de IDEs
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Archivos del sistema Windows
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Archivos temporales
+*.tmp
+*.temp
+*.swp

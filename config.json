@@ -1,0 +1,20 @@
+{
+    "destinatarios": [
+        "osorio.albert@claro.com.gt",
+        "erickson007@gmail.com",
+        "systemsolutionie@gmail.com",
+        "erickson558@outlook.com"
+    ],
+    "asunto": "Reminder de Factura Brian del 20 al 25 de cada mes Vanatech",
+    "cuerpo": "Recordatorio de presentar la factura de Brian \nla dirección completa del comprador es:\nVÍA 4 1-00 ZONA 4, EDIFICIO CAMPUS TECIII,NIVEL 8, OFICINA 803\n\nLa descripcion es: Servicios profesionales prestados en el mes  [Mes en letras] de [año en numero]",
+    "auto_close": true,
+    "auto_close_delay": 60,
+    "email_method": "outlook",
+    "smtp_config": {
+        "server": "smtp-mail.outlook.com",
+        "port": 587,
+        "username": "",
+        "password": ""
+    },
+    "language": "es"
+}
