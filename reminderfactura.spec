@@ -3,9 +3,10 @@
 # PyInstaller spec para ReminderMailVanatech
 #
 # Compilar con:
-#   pyinstaller reminderfactura.spec
+#   pyinstaller --distpath . --workpath build reminderfactura.spec
 #
-# El ejecutable generado se encontrará en dist/reminderfacturavanatech.exe
+# El ejecutable generado se encontrará en la raíz del proyecto
+# junto a main.py/config.json cuando se use --distpath .
 # No requiere consola (windowed=True) y usa el ícono reminderagua.ico.
 #
 # Notas importantes:

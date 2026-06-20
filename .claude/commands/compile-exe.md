@@ -38,20 +38,20 @@ Remove-Item -Recurse -Force "d:\OneDrive\Regional\1 pendientes para analisis\pro
 ### 5. Compilar
 ```powershell
 cd "d:\OneDrive\Regional\1 pendientes para analisis\proyectospython\ReminderMailBrianvanatech"
-pyinstaller reminderfactura.spec
+.\build_exe.ps1
 ```
 
 ### 6. Verificar resultado
 ```powershell
-Test-Path "d:\OneDrive\Regional\1 pendientes para analisis\proyectospython\ReminderMailBrianvanatech\dist\reminderfacturavanatech.exe"
-Get-Item "d:\...\dist\reminderfacturavanatech.exe" | Select-Object Name, Length, LastWriteTime
+Test-Path "d:\OneDrive\Regional\1 pendientes para analisis\proyectospython\ReminderMailBrianvanatech\reminderfacturavanatech.exe"
+Get-Item "d:\OneDrive\Regional\1 pendientes para analisis\proyectospython\ReminderMailBrianvanatech\reminderfacturavanatech.exe" | Select-Object Name, Length, LastWriteTime
 ```
 
 ### 7. Reportar al usuario
 - Resultado de la compilación (éxito o errores)
 - Tamaño y ubicación del .exe generado
 - Instrucciones de distribución:
-  - El archivo `dist/reminderfacturavanatech.exe` es autocontenido.
+  - El archivo `reminderfacturavanatech.exe` en la raíz del proyecto es autocontenido.
   - Al ejecutarlo por primera vez creará `config.json` en la misma carpeta.
   - `reminder_mail.log` también se crea junto al .exe.
   - NO requiere Python instalado en el equipo destino.

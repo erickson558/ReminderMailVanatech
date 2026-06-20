@@ -50,8 +50,8 @@ python main.py
 
 ```powershell
 pip install -r requirements.txt
-pyinstaller reminderfactura.spec
-# El .exe queda en dist/reminderfacturavanatech.exe
+.\build_exe.ps1
+# El .exe queda en la raíz del proyecto: reminderfacturavanatech.exe
 ```
 
 ## Métodos de envío de correo

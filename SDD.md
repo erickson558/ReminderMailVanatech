@@ -87,6 +87,7 @@ Diseñado para ejecutarse desde Windows Task Scheduler sin intervención del usu
 | P-03 | Ícono reminderagua.ico en el ejecutable | ✅ Implementado |
 | P-04 | Archivos i18n empaquetados dentro del .exe | ✅ Implementado |
 | P-05 | config.json NO empaquetado (persiste junto al .exe) | ✅ Implementado |
+| P-06 | La recompilación deja `reminderfacturavanatech.exe` en la raíz del proyecto, junto a `main.py`/`config.json` | ✅ Implementado |
 
 ---
 
