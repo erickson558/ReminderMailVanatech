@@ -262,7 +262,7 @@ class ReminderMailApp:
         )
         if cuentas:
             # Pre-seleccionar la cuenta guardada si está disponible
-            saved_account = self.config.get("smtp_config", {}).get("username", "")
+            saved_account = self.config.get("outlook_account", "")
             try:
                 idx = [c.lower() for c in cuentas].index(saved_account.lower())
                 self._combobox_cuenta.current(idx)
@@ -442,6 +442,7 @@ class ReminderMailApp:
             "auto_close":     self._auto_close_var.get(),
             "auto_close_delay": delay,
             "email_method":   self._method_var.get(),
+            "outlook_account": self._combobox_cuenta.get().strip(),
             "smtp_config": {
                 "server":   self._entry_smtp_server.get().strip(),
                 "port":     port,
@@ -449,15 +450,11 @@ class ReminderMailApp:
                 "password": self._entry_smtp_pass.get().strip(),
             },
             "language": self._lang,
-            # Cuenta Outlook seleccionada: solo relevante para método "outlook"
-            "_outlook_account": self._combobox_cuenta.get()
         }
 
     def _save_config(self) -> None:
         """Guarda la configuración actual del formulario en config.json."""
         data = self._collect_form_data()
-        # Eliminar clave auxiliar antes de persistir (no debe ir al JSON)
-        data.pop("_outlook_account", None)
 
         if save_config(data):
             self.config = data
@@ -489,10 +486,9 @@ class ReminderMailApp:
         # Preparar el campo from_account según el método (acceso thread-safe aquí)
         method = form_data["email_method"]
         form_data["from_account"] = (
-            form_data["_outlook_account"] if method == "outlook"
+            form_data["outlook_account"] if method == "outlook"
             else form_data["smtp_config"]["username"]
         )
-        form_data.pop("_outlook_account", None)
 
         # Bloquear UI y lanzar hilo de fondo
         self._sending = True

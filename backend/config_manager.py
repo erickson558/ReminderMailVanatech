@@ -30,6 +30,7 @@ DEFAULTS: Dict[str, Any] = {
     "auto_close": True,
     "auto_close_delay": 60,         # segundos antes de cerrar la app
     "email_method": "outlook",       # "outlook" (COM) o "smtp" (Hotmail/Gmail)
+    "outlook_account": "",          # cuenta seleccionada para envío por Outlook
     "smtp_config": {
         "server": "smtp-mail.outlook.com",   # servidor para Hotmail/Outlook.com
         "port": 587,                          # puerto STARTTLS

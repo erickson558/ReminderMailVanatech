@@ -67,6 +67,32 @@ def apply_placeholders(text: str) -> str:
     )
 
 
+def normalize_recipients(recipients: List[str]) -> List[str]:
+    """
+    Limpia y deduplica destinatarios preservando el orden original.
+
+    Acepta entradas individuales o cadenas separadas por coma/punto y coma
+    para tolerar ediciones manuales en config.json.
+    """
+    normalized: List[str] = []
+    seen = set()
+
+    for recipient in recipients:
+        for chunk in recipient.replace(";", ",").split(","):
+            candidate = chunk.strip()
+            if not candidate:
+                continue
+
+            lowered = candidate.lower()
+            if lowered in seen:
+                continue
+
+            seen.add(lowered)
+            normalized.append(candidate)
+
+    return normalized
+
+
 # ── Método 1: Outlook COM ──────────────────────────────────────────────────────
 
 def get_outlook_accounts() -> List[str]:
@@ -145,9 +171,11 @@ def send_via_outlook(
             "Agrégala en Outlook → Archivo → Configuración de cuenta."
         )
 
-    # Excluir la cuenta de envío de los destinatarios para evitar auto-copia
-    filtered = [d for d in recipients if d.lower() != from_account.lower()]
-    mail.To = "; ".join(filtered)
+    normalized_recipients = normalize_recipients(recipients)
+    if not normalized_recipients:
+        raise ValueError("No hay destinatarios válidos para el envío.")
+
+    mail.To = "; ".join(normalized_recipients)
 
     mail.Send()
     logger.info("Correo enviado exitosamente via Outlook desde '%s'.", from_account)
@@ -193,6 +221,7 @@ def send_via_smtp(
     password = smtp_config.get("password", "").strip()
     server   = smtp_config.get("server",   "smtp-mail.outlook.com")
     port     = int(smtp_config.get("port", 587))
+    normalized_recipients = normalize_recipients(recipients)
 
     if not username or not password:
         raise ValueError(
@@ -201,15 +230,18 @@ def send_via_smtp(
             "de seguridad de tu cuenta."
         )
 
+    if not normalized_recipients:
+        raise ValueError("No hay destinatarios válidos para el envío.")
+
     logger.info(
         "Enviando via SMTP | server: %s:%s | from: %s | to: %s",
-        server, port, username, recipients
+        server, port, username, normalized_recipients
     )
 
     # Construir el mensaje MIME en UTF-8 para soportar caracteres especiales
     msg = MIMEMultipart()
     msg['From']    = username
-    msg['To']      = "; ".join(recipients)
+    msg['To']      = "; ".join(normalized_recipients)
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
@@ -222,7 +254,7 @@ def send_via_smtp(
         conn.starttls(context=ssl_context)  # subir a canal cifrado
         conn.ehlo()                         # re-presentar sobre TLS
         conn.login(username, password)      # autenticar
-        conn.sendmail(username, recipients, msg.as_string())
+        conn.sendmail(username, normalized_recipients, msg.as_string())
 
     logger.info("Correo enviado exitosamente via SMTP desde '%s'.", username)
 
@@ -254,6 +286,8 @@ def send_email(
         ValueError: Si el método no es "outlook" ni "smtp", o falta smtp_config.
         Exception:  Cualquier error durante el envío (re-lanzado para manejo en la GUI).
     """
+    recipients = normalize_recipients(recipients)
+
     # Resolver placeholders antes de enviar (ej: [Mes en letras] → "Junio")
     processed_body = apply_placeholders(body)
 
