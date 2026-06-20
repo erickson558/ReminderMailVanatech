@@ -167,6 +167,7 @@ def send_via_outlook(
         Exception:    Cualquier otro error de la API COM de Outlook.
     """
     try:
+        import pythoncom
         import win32com.client as win32
     except ImportError as exc:
         raise RuntimeError(
@@ -176,34 +177,38 @@ def send_via_outlook(
 
     logger.info("Enviando via Outlook | from: %s | to: %s", from_account, recipients)
 
-    outlook = win32.Dispatch('Outlook.Application')
-    mail = outlook.CreateItem(0)        # 0 = olMailItem (correo electrónico)
-    mail.Subject = subject
-    mail.Body = body
+    pythoncom.CoInitialize()
+    try:
+        outlook = win32.Dispatch('Outlook.Application')
+        mail = outlook.CreateItem(0)        # 0 = olMailItem (correo electrónico)
+        mail.Subject = subject
+        mail.Body = body
 
-    # Buscar la cuenta remitente en el perfil de Outlook
-    account_found = False
-    for account in outlook.Session.Accounts:
-        if account.SmtpAddress.lower() == from_account.lower():
-            mail.SendUsingAccount = account
-            account_found = True
-            break
+        # Buscar la cuenta remitente en el perfil de Outlook
+        account_found = False
+        for account in outlook.Session.Accounts:
+            if account.SmtpAddress.lower() == from_account.lower():
+                mail.SendUsingAccount = account
+                account_found = True
+                break
 
-    if not account_found:
-        raise ValueError(
-            f"La cuenta '{from_account}' no está configurada en Outlook.\n"
-            "Agrégala en Outlook → Archivo → Configuración de cuenta."
-        )
+        if not account_found:
+            raise ValueError(
+                f"La cuenta '{from_account}' no está configurada en Outlook.\n"
+                "Agrégala en Outlook → Archivo → Configuración de cuenta."
+            )
 
-    normalized_recipients = normalize_recipients(recipients)
-    if not normalized_recipients:
-        raise ValueError("No hay destinatarios válidos para el envío.")
+        normalized_recipients = normalize_recipients(recipients)
+        if not normalized_recipients:
+            raise ValueError("No hay destinatarios válidos para el envío.")
 
-    _populate_outlook_recipients(mail, normalized_recipients)
-    mail.To = "; ".join(normalized_recipients)
+        _populate_outlook_recipients(mail, normalized_recipients)
+        mail.To = "; ".join(normalized_recipients)
 
-    mail.Send()
-    logger.info("Correo enviado exitosamente via Outlook desde '%s'.", from_account)
+        mail.Send()
+        logger.info("Correo enviado exitosamente via Outlook desde '%s'.", from_account)
+    finally:
+        pythoncom.CoUninitialize()
 
 
 # ── Método 2: SMTP / STARTTLS ──────────────────────────────────────────────────
