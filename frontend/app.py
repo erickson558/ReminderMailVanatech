@@ -24,7 +24,7 @@ from tkinter import simpledialog, ttk
 from typing import Dict, Optional
 
 from backend.config_manager import load_config, save_config
-from backend.email_service import get_outlook_accounts, send_email
+from backend.email_service import get_outlook_accounts, normalize_recipients, send_email
 from backend.logger_setup import setup_logger
 
 logger = setup_logger(__name__)
@@ -197,7 +197,7 @@ class ReminderMailApp:
         frame_dest.pack(pady=5, fill=tk.X, padx=10)
 
         self._listbox = tk.Listbox(frame_dest, width=55, height=5, selectmode=tk.EXTENDED)
-        for addr in self.config.get("destinatarios", []):
+        for addr in normalize_recipients(self.config.get("destinatarios", [])):
             self._listbox.insert(tk.END, addr)
         self._listbox.pack(pady=5, padx=10)
 
@@ -399,7 +399,9 @@ class ReminderMailApp:
             parent=self.root
         )
         if nuevo and nuevo.strip():
-            self._listbox.insert(tk.END, nuevo.strip())
+            recipients = self._get_current_recipients()
+            recipients.extend(normalize_recipients([nuevo]))
+            self._replace_recipients(recipients)
             self.update_status(self.t("status_added"), "green")
 
     def _eliminar_destinatario(self) -> None:
@@ -411,7 +413,21 @@ class ReminderMailApp:
         # Eliminar de abajo hacia arriba para no alterar los índices
         for idx in reversed(seleccion):
             self._listbox.delete(idx)
+        self._replace_recipients(self._listbox.get(0, tk.END))
         self.update_status(self.t("status_removed"), "green")
+
+    def _get_current_recipients(self) -> list[str]:
+        """Devuelve los destinatarios actuales del Listbox ya limpios y sin duplicados."""
+        return normalize_recipients(list(self._listbox.get(0, tk.END)))
+
+    def _replace_recipients(self, recipients) -> None:
+        """Reemplaza el contenido del Listbox con una lista normalizada de destinatarios."""
+        normalized = normalize_recipients(list(recipients))
+        self._listbox.delete(0, tk.END)
+        for addr in normalized:
+            self._listbox.insert(tk.END, addr)
+
+        self.config["destinatarios"] = normalized
 
     # ── Recolección de datos del formulario ────────────────────────────────────
 
@@ -436,7 +452,7 @@ class ReminderMailApp:
             delay = 60
 
         return {
-            "destinatarios": list(self._listbox.get(0, tk.END)),
+            "destinatarios": self._get_current_recipients(),
             "asunto":         self._entry_asunto.get().strip(),
             "cuerpo":         self._text_cuerpo.get("1.0", tk.END).strip(),
             "auto_close":     self._auto_close_var.get(),
