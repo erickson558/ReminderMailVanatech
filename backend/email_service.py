@@ -93,6 +93,30 @@ def normalize_recipients(recipients: List[str]) -> List[str]:
     return normalized
 
 
+def _populate_outlook_recipients(mail, recipients: List[str]) -> None:
+    """Agrega y resuelve cada destinatario en el correo COM de Outlook."""
+    unresolved: List[str] = []
+
+    for address in normalize_recipients(recipients):
+        outlook_recipient = mail.Recipients.Add(address)
+        try:
+            resolved = bool(outlook_recipient.Resolve())
+        except Exception:
+            resolved = False
+
+        if not resolved:
+            unresolved.append(address)
+
+    if unresolved:
+        raise ValueError(
+            "Outlook no pudo resolver estos destinatarios: "
+            + ", ".join(unresolved)
+        )
+
+    if not mail.Recipients.ResolveAll():
+        raise ValueError("Outlook no pudo resolver la lista completa de destinatarios.")
+
+
 # ── Método 1: Outlook COM ──────────────────────────────────────────────────────
 
 def get_outlook_accounts() -> List[str]:
@@ -128,8 +152,8 @@ def send_via_outlook(
     Selecciona la cuenta de envío indicada en `from_account`. Si la cuenta
     no está en el perfil de Outlook, lanza ValueError.
 
-    La cuenta de envío se excluye automáticamente de la lista de destinatarios
-    para evitar que el remitente se reciba a sí mismo una copia.
+    Los destinatarios se agregan uno por uno a la colección COM de Outlook
+    para forzar su resolución y evitar que Outlook descarte direcciones de forma silenciosa.
 
     Args:
         from_account: Dirección SMTP exacta de la cuenta que envía (ej: "mi@outlook.com").
@@ -175,6 +199,7 @@ def send_via_outlook(
     if not normalized_recipients:
         raise ValueError("No hay destinatarios válidos para el envío.")
 
+    _populate_outlook_recipients(mail, normalized_recipients)
     mail.To = "; ".join(normalized_recipients)
 
     mail.Send()
